@@ -13,8 +13,19 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog"
+
 import { useState } from "react"
-import { Eye } from "lucide-react"
+import { Eye,Pencil, Trash  } from "lucide-react"
 
 type Appointment = {
   id: string
@@ -48,12 +59,18 @@ type PetDetails = {
 
 type Props = {
   appointments: Appointment[]
+  refreshAppointments:void
 }
 
-export function AppointmentsTable({ appointments }: Props) {
+export function AppointmentsTable({ appointments,refreshAppointments }: Props) {
   const [selectedPet, setSelectedPet] = useState<PetDetails | null>(null)
   const [open, setOpen] = useState(false)
   const [owner, setOwner] = useState<{ firstName: string; lastName: string } | null>(null)
+
+  const [editModalOpen, setEditModalOpen] = useState(false)
+const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+const [newDate, setNewDate] = useState("")
+const [newTime, setNewTime] = useState("")
 
 
   function getOwnerFullName(owner: { firstName: string; lastName: string }) {
@@ -76,6 +93,56 @@ const handleOpenModal = async (
   }
 }
 
+const handleEditClick = (appointment: Appointment) => {
+  setSelectedAppointment(appointment)
+
+  const dateObj = new Date(appointment.date)
+  setNewDate(dateObj.toISOString().split("T")[0]) // yyyy-mm-dd
+  setNewTime(dateObj.toTimeString().slice(0, 5))   // hh:mm
+  setEditModalOpen(true)
+}
+
+const handleSaveEdit = async () => {
+  if (!selectedAppointment) return
+
+  const localDate = new Date(`${newDate}T${newTime}`);
+  const timezoneOffset = localDate.getTimezoneOffset() * 60000; // en ms
+  const correctedDate = new Date(localDate.getTime() - timezoneOffset);
+
+  try {
+    const res = await fetch(`http://localhost:8000/api/v1/appointments/${selectedAppointment.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ date: correctedDate.toISOString() }),
+    })
+    refreshAppointments()
+    if (!res.ok) throw new Error("Error al actualizar turno")
+
+    const updatedAppointment = await res.json()
+    console.log("Actualizado:", updatedAppointment)
+
+    setEditModalOpen(false)
+    setSelectedAppointment(null)
+  } catch (error) {
+    console.error("Error al actualizar el turno:", error)
+  }
+}
+
+const handleDelete = async (id: string) => {
+  try {
+    const res = await fetch(`http://localhost:8000/api/v1/appointments/${id}`, {
+      method: "DELETE",
+    })
+    if (!res.ok) throw new Error("NO se pudo eliminar el turno")
+    refreshAppointments()
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+
 
   return (
     <> 
@@ -96,7 +163,11 @@ const handleOpenModal = async (
         
           const dateObj = new Date(a.date)
           const appointment_date = dateObj.toLocaleDateString()
-          const appointment_time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          const appointment_time = dateObj.toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false,
+          })
           const ownerFullName=getOwnerFullName(a.pet.owner)
 
           return (
@@ -109,13 +180,42 @@ const handleOpenModal = async (
               <TableCell>{a.treatment}</TableCell>
               <TableCell>{a.doctor.name}</TableCell>
               <TableCell>
+                <div className="flex gap-2">
                  <button
-onClick={() => handleOpenModal(a.pet.id, a.pet.owner)}
-  className="text-blue-600 hover:text-blue-800"
-  title="Ver mascota"
->
-  <Eye className="h-4 w-4" />
-</button>
+                    onClick={() => handleOpenModal(a.pet.id, a.pet.owner)}
+                    className="text-blue-600 hover:text-blue-800"
+                    title="Ver mascota">
+                      <Eye className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleEditClick(a)} 
+                    className="text-green-600 hover:text-green-800"
+                    title="Editar turno">
+                      <Pencil className="h-4 w-4" />
+                  </button>
+                    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <button
+          className="text-red-600 hover:text-red-800"
+          title="Eliminar turno"
+        >
+          <Trash className="h-4 w-4" />
+        </button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>¿Estas seguro de eliminar este turno?</AlertDialogTitle>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={() => handleDelete(a.id)}>
+            Confirmar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+                  
+                </div>
                 </TableCell>
             </TableRow>
           )
@@ -123,7 +223,7 @@ onClick={() => handleOpenModal(a.pet.id, a.pet.owner)}
       </TableBody>
     </Table>
 
- <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
 
 
@@ -155,6 +255,47 @@ onClick={() => handleOpenModal(a.pet.id, a.pet.owner)}
           )}
         </DialogContent>
       </Dialog>
+
+      <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+        <DialogContent className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <DialogHeader>
+        <DialogTitle>Editar turno</DialogTitle>
+      </DialogHeader>
+
+    {selectedAppointment && (
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium">Nueva fecha</label>
+          <input
+            type="date"
+            value={newDate}
+            onChange={(e) => setNewDate(e.target.value)}
+            className="w-full border border-gray-300 rounded px-2 py-1"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium">Nuevo horario</label>
+          <input
+            type="time"
+            value={newTime}
+            onChange={(e) => setNewTime(e.target.value)}
+            className="w-full border border-gray-300 rounded px-2 py-1"
+          />
+        </div>
+        <DialogClose asChild>
+          <button
+            onClick={handleSaveEdit}
+            className="mt-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            Guardar cambios
+          </button>
+        </DialogClose>
+        
+      </div>
+    )}
+  </DialogContent>
+</Dialog>
+
       </>
 
     

@@ -6,12 +6,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export function Dashboard() {
      const [appointments, setAppointments] = useState([])
+     
 
-     useEffect(() => {
-    fetch("http://localhost:8000/api/v1/appointments/with-names")
-      .then((res) => res.json())
-      .then((data) => setAppointments(data))
-  }, [])
+    const fetchAppointments = () => {
+      fetch("http://localhost:8000/api/v1/appointments/with-names")
+        .then((res) => res.json())
+        .then((data) => setAppointments(data))
+    }
+
+    useEffect(() => {
+    fetchAppointments()
+    }, [])
 
  
   const today = new Date()
@@ -28,39 +33,14 @@ const todaysAppointments = futureAppointments.filter((a) =>
     {
       title: "Turnos del día",
       value: todaysAppointments.length.toString(),
-      //description: "Total para hoy",
-      // badgeText: "+3%", 
-      // badgeIcon: CalendarCheck,
-      // footerText: "Respecto al promedio diario",
-      // footerIcon: TrendingUp,
+     
     },
     {
       title: "Turnos a futuro",
       value: futureAppointments.length.toString(),
-      //description: "Upcoming scheduled",
-      // badgeText: "+5%",
-      // badgeIcon: CalendarCheck,
-      // footerText: "Compared to last week",
-      // footerIcon: TrendingUp,
+      
     },
-    // {
-    //   title: "Registered Pets",
-    //   value: "24",
-    //   description: "Total active pets",
-    //   badgeText: "+3%",
-    //   badgeIcon: User,
-    //   footerText: "Compared to last month",
-    //   footerIcon: TrendingUp,
-    // },
-    // {
-    //   title: "Other Metric",
-    //   value: "42",
-    //   description: "Description here",
-    //   badgeText: "-2%",
-    //   badgeIcon: TrendingUp,
-    //   footerText: "Compared to last quarter",
-    //   footerIcon: TrendingUp,
-    // },
+    
   ]
   return (
   
@@ -74,7 +54,7 @@ const todaysAppointments = futureAppointments.filter((a) =>
         <TabsContent value="appointments">
           <InfoCardsGroup cards={cardsData} />
           <h1 className="text-2xl font-semibold mt-8 mb-4">Próximos turnos</h1>
-          <AppointmentsTable appointments={futureAppointments} />
+          <AppointmentsTable appointments={futureAppointments} refreshAppointments={fetchAppointments}/>
         </TabsContent>
 
         <TabsContent value="pets">
