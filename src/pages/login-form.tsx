@@ -47,7 +47,7 @@ export function LoginForm({
       console.log('TOKEN:', token)
 
      
-      //localStorage.setItem('token', token)
+      localStorage.setItem('token', token)
     
       navigate('/dashboard')
 

@@ -1,32 +1,90 @@
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
+
 import { AppointmentsTable } from "@/components/ui/appointments-table"
+import { CustomersTable } from "@/components/ui/customers-table"
+import { CreateUserForm } from "@/components/ui/create-user-form"
+
 import { InfoCardsGroup } from "@/components/info-cards-group"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 
+import type{ Appointment } from "@/components/ui/appointments-table"
+
+import { getUserFromToken } from "@/utils/auth"
+
+const translateRole = (role: string): string => {
+  switch (role) {
+    case "admin":
+      return "Administrador"
+    case "employee":
+      return "Empleado"
+    default:
+      return role
+  }
+}
 
 export function Dashboard() {
-     const [appointments, setAppointments] = useState([])
-     
 
+    const [appointments, setAppointments] = useState<Appointment[]>([])
+    const [customers, setCustomers] = useState([])
+const navigate = useNavigate()
+const user = getUserFromToken()
+
+const handleLogout = () => {
+  localStorage.removeItem("token")
+  navigate("/")
+}
     const fetchAppointments = () => {
-      fetch("http://localhost:8000/api/v1/appointments/with-names")
+    const token = localStorage.getItem("token")
+
+    fetch("http://localhost:8000/api/v1/appointments/with-names", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      })
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setAppointments(data)
+        } else {
+          setAppointments([])
+        }
+      })
+      }
+
+    const fetchCustomers = () => {
+      const token = localStorage.getItem("token")
+
+      fetch("http://localhost:8000/api/v1/customers", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      })
         .then((res) => res.json())
-        .then((data) => setAppointments(data))
+        .then((data) => setCustomers(data))
     }
 
     useEffect(() => {
+      const token = localStorage.getItem("token")
+  if (!token) {
+    navigate("/")
+    return
+  }
     fetchAppointments()
-    }, [])
+    fetchCustomers()
+    }, [navigate])
 
  
   const today = new Date()
   const todayStr = today.toISOString().split("T")[0]
 
  const futureAppointments = appointments
-  .filter((a) => new Date(a.date) >= today)
+  .filter((a) => a.date && new Date(a.date) >= today)
   .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
-const todaysAppointments = futureAppointments.filter((a) =>
+  const todaysAppointments = futureAppointments.filter((a) =>
   a.date.startsWith(todayStr)
 )
  const cardsData = [
@@ -45,10 +103,21 @@ const todaysAppointments = futureAppointments.filter((a) =>
   return (
   
      <div className="p-6">
+     {user && (
+  <div className="text-sm text-muted-foreground flex flex-col gap-1">
+      <Badge variant="outline">{user.email}</Badge>
+<Badge variant="secondary">{translateRole(user.role)}</Badge>  </div>
+)}
+      <div className="flex justify-end mb-4">
+  <Button variant="outline" onClick={handleLogout}>
+    Logout
+  </Button>
+</div>
       <Tabs defaultValue="appointments" className="w-full">
         <TabsList className="mb-6">
           <TabsTrigger value="appointments">Turnos</TabsTrigger>
-          <TabsTrigger value="pets">Mascotas</TabsTrigger>
+          <TabsTrigger value="customers">Clientes</TabsTrigger>
+          {user?.role === "admin" && <TabsTrigger value="users">Usuarios</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="appointments">
@@ -57,12 +126,18 @@ const todaysAppointments = futureAppointments.filter((a) =>
           <AppointmentsTable appointments={futureAppointments} refreshAppointments={fetchAppointments}/>
         </TabsContent>
 
-        <TabsContent value="pets">
+        <TabsContent value="customers">
          
-          <h1 className="text-2xl font-semibold mt-8 mb-4">Listado de mascotas</h1>
+          <h1 className="text-2xl font-semibold mt-8 mb-4">Listado de clientes</h1>
+          <CustomersTable customers={customers} />
           
-          <p>Aquí podés listar las mascotas o agregar un componente de tabla.</p>
         </TabsContent>
+       
+  <TabsContent value="users">
+    <h1 className="text-2xl font-semibold mt-8 mb-4">Crear usuario</h1>
+    <CreateUserForm />
+  </TabsContent>
+
       </Tabs>
     </div>
   )

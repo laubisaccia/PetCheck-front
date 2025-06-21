@@ -27,7 +27,7 @@ import {
 import { useState } from "react"
 import { Eye,Pencil, Trash  } from "lucide-react"
 
-type Appointment = {
+export type Appointment = {
   id: string
   date: string
   diagnosis: string
@@ -59,9 +59,22 @@ type PetDetails = {
 
 type Props = {
   appointments: Appointment[]
-  refreshAppointments:void
-}
+refreshAppointments: () => void}
 
+const fetchWithAuth = (url: string, options: RequestInit = {}) => {
+  const token = localStorage.getItem("token")
+
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      Authorization: `Bearer ${token}`,
+      ...(options.method === "POST" || options.method === "PATCH"
+        ? { "Content-Type": "application/json" }
+        : {}),
+    },
+  })
+}
 export function AppointmentsTable({ appointments,refreshAppointments }: Props) {
   const [selectedPet, setSelectedPet] = useState<PetDetails | null>(null)
   const [open, setOpen] = useState(false)
@@ -83,7 +96,7 @@ const handleOpenModal = async (
   ownerData: { firstName: string; lastName: string }
 ) => {
   try {
-    const res = await fetch(`http://localhost:8000/api/v1/pets/${petId}`)
+    const res = await fetchWithAuth(`http://localhost:8000/api/v1/pets/${petId}`)
     const data = await res.json()
     setSelectedPet(data)
     setOwner(ownerData)
@@ -110,11 +123,9 @@ const handleSaveEdit = async () => {
   const correctedDate = new Date(localDate.getTime() - timezoneOffset);
 
   try {
-    const res = await fetch(`http://localhost:8000/api/v1/appointments/${selectedAppointment.id}`, {
+    const res = await fetchWithAuth(`http://localhost:8000/api/v1/appointments/${selectedAppointment.id}`, {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
+     
       body: JSON.stringify({ date: correctedDate.toISOString() }),
     })
     refreshAppointments()
@@ -132,7 +143,7 @@ const handleSaveEdit = async () => {
 
 const handleDelete = async (id: string) => {
   try {
-    const res = await fetch(`http://localhost:8000/api/v1/appointments/${id}`, {
+    const res = await fetchWithAuth(`http://localhost:8000/api/v1/appointments/${id}`, {
       method: "DELETE",
     })
     if (!res.ok) throw new Error("NO se pudo eliminar el turno")
