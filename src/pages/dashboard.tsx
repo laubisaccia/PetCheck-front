@@ -158,10 +158,9 @@ const refreshCustomerPets = (customerId: string) => {
         <TabsContent value="appointments">
           <InfoCardsGroup cards={cardsData} />
           <h1 className="text-2xl font-semibold mt-8 mb-4">Próximos turnos</h1>
-          <Button onClick={() => setShowCreateModal(true)} className="mb-4">
-  Crear turno
-</Button>
-          <AppointmentsTable appointments={futureAppointments} refreshAppointments={fetchAppointments}/>
+          
+          <AppointmentsTable appointments={futureAppointments} 
+          refreshAppointments={fetchAppointments}/>
         </TabsContent>
 
         <TabsContent value="customers">
@@ -177,6 +176,7 @@ const refreshCustomerPets = (customerId: string) => {
              refreshCustomerPets={refreshCustomerPets}
              refreshId={refreshId}
              refreshCustomers={fetchCustomers}
+             refreshAppointments={fetchAppointments}
           />
           {showCreatePetModal && selectedCustomerId && (
     <CreatePetForm

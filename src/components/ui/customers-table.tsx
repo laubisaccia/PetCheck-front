@@ -33,7 +33,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { Pencil, Trash  } from "lucide-react"
+import { Pencil, Trash,CalendarPlus  } from "lucide-react"
 
 
 type Customer = {
@@ -49,6 +49,10 @@ type Pet = {
   name: string
 }
 
+type Doctor = {
+  id: string
+  name: string
+}
 type Props = {
   customers: Customer[]
   onCreatePetClick: (customerId: string) => void
@@ -56,9 +60,10 @@ type Props = {
   refreshCustomerPets: (customerId: string) => void
   refreshId: string | null
   refreshCustomers: () => void 
+   refreshAppointments: () => void
 }
 
-export function CustomersTable({ customers, onCreatePetClick, fetchPetsByCustomerId,refreshId,refreshCustomers }: Props) {
+export function CustomersTable({ customers, onCreatePetClick, fetchPetsByCustomerId,refreshId,refreshCustomers,refreshAppointments  }: Props) {
   const [customerPets, setCustomerPets] = useState<Record<string, Pet[]>>({})
   const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set())
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -67,6 +72,13 @@ const [firstName, setFirstName] = useState("")
 const [lastName, setLastName] = useState("")
 const [email, setEmail] = useState("")
 const [phone, setPhone] = useState("")
+const [availableDoctors, setAvailableDoctors] = useState<Doctor[]>([])
+const [selectedPetId, setSelectedPetId] = useState("")
+const [selectedDoctorId, setSelectedDoctorId] = useState("")
+const [newDate, setNewDate] = useState("")
+const [newTime, setNewTime] = useState("")
+const [newAppointmentModalOpen, setNewAppointmentModalOpen] = useState(false)
+const [appointmentCustomerId, setAppointmentCustomerId] = useState<string | null>(null)
 
   const loadPets = async (customerId: string) => {
     console.log(customerId)
@@ -82,6 +94,7 @@ const [phone, setPhone] = useState("")
       return updated
     })
   }
+
   useEffect(() => {
     if (refreshId) {
       setLoadingIds((prev) => new Set(prev).add(refreshId))
@@ -95,6 +108,35 @@ const [phone, setPhone] = useState("")
       })
     }
   }, [refreshId, fetchPetsByCustomerId])
+
+  //me traigo los docs
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+if (!token) {
+    console.error("No token found");
+    return;
+  }
+fetch("http://localhost:8000/api/v1/doctors", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(`Error ${res.status}: ${res.statusText}`);
+      }
+      return res.json();
+    })
+    .then((data) => setAvailableDoctors(data))
+    .catch((err) => console.error("Error al traer doctores:", err));
+}, []);
+
+//aca se cargan las pets del cliente cuando abro modal de turno
+useEffect(() => {
+  if (appointmentCustomerId && !customerPets[appointmentCustomerId]) {
+    loadPets(appointmentCustomerId)
+  }
+}, [appointmentCustomerId])
 
   const handleEditCustomer = (customer: Customer) => {
   setSelectedCustomer(customer)
@@ -136,11 +178,46 @@ const handleDeleteCustomer = async (id: string) => {
     })
     if (!res.ok) throw new Error("No se pudo eliminar el cliente")
     refreshCustomers()
+   refreshAppointments()
   } catch (error) {
     console.error("Error al eliminar cliente:", error)
   }
 }
+const handleCreateAppointment = async () => {
+  const token = localStorage.getItem("token")
+  const dateObj = new Date(`${newDate}T${newTime}`)
+  const correctedDate = new Date(dateObj.getTime() - dateObj.getTimezoneOffset() * 60000)
 
+  try {
+    const res = await fetch("http://localhost:8000/api/v1/appointments", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        pet_id: selectedPetId,
+        doctor_id: selectedDoctorId,
+        date: correctedDate.toISOString(),
+      }),
+    })
+    if (!res.ok) throw new Error("Error al crear turno")
+       refreshAppointments()
+    refreshCustomers() 
+    setNewAppointmentModalOpen(false)
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+const openAppointmentModal = (customerId: string) => {
+  setAppointmentCustomerId(customerId)
+  setSelectedPetId("")
+  setSelectedDoctorId("")
+  setNewDate("")
+  setNewTime("")
+  setNewAppointmentModalOpen(true)
+}
   return (
     <>
     <Table>
@@ -192,8 +269,6 @@ const handleDeleteCustomer = async (id: string) => {
               <button onClick={() => onCreatePetClick(customer.id)} title="Crear mascota">
                 <Plus className="h-5 w-5 text-blue-600" />
               </button>
-            
-  
     <button onClick={() => handleEditCustomer(customer)} title="Editar cliente">
       <Pencil className="h-5 w-5 text-green-600" />
     </button>
@@ -217,6 +292,14 @@ const handleDeleteCustomer = async (id: string) => {
       </AlertDialogContent>
     </AlertDialog>
   
+</TableCell>
+<TableCell>
+  <button
+  onClick={() => openAppointmentModal(customer.id)}
+  title="Crear turno"
+>
+  <CalendarPlus className="h-5 w-5 text-purple-600" />
+</button>
 </TableCell>
 
           </TableRow>
@@ -242,6 +325,59 @@ const handleDeleteCustomer = async (id: string) => {
     </div>
   </DialogContent>
 </Dialog>
+<Dialog open={newAppointmentModalOpen} onOpenChange={setNewAppointmentModalOpen}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Nuevo turno</DialogTitle>
+    </DialogHeader>
+    <div className="space-y-4">
+      <select
+        value={selectedPetId}
+        onChange={(e) => setSelectedPetId(e.target.value)}
+        className="w-full border px-2 py-1"
+      >
+        <option value="">Seleccioná una mascota</option>
+        {appointmentCustomerId && customerPets[appointmentCustomerId]?.map(pet => (
+          <option key={pet.id} value={pet.id}>{pet.name}</option>
+        ))}
+      </select>
+
+      <select
+        value={selectedDoctorId}
+        onChange={(e) => setSelectedDoctorId(e.target.value)}
+        className="w-full border px-2 py-1"
+      >
+        <option value="">Seleccioná un médico</option>
+        {availableDoctors.map(doctor => (
+          <option key={doctor.id} value={doctor.id}>{doctor.name}</option>
+        ))}
+      </select>
+
+      <input
+        type="date"
+        value={newDate}
+        onChange={(e) => setNewDate(e.target.value)}
+        className="w-full border px-2 py-1"
+      />
+      <input
+        type="time"
+        value={newTime}
+        onChange={(e) => setNewTime(e.target.value)}
+        className="w-full border px-2 py-1"
+      />
+
+      <DialogClose asChild>
+        <button
+          onClick={handleCreateAppointment}
+          className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+        >
+          Crear turno
+        </button>
+      </DialogClose>
+    </div>
+  </DialogContent>
+</Dialog>
+
 </>
   )
 }

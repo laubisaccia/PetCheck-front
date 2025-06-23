@@ -164,8 +164,6 @@ const handleDelete = async (id: string) => {
           <TableHead>Hora</TableHead>
           <TableHead>Cliente</TableHead>
           <TableHead>Mascota</TableHead>
-          <TableHead>Tratamiento</TableHead>
-          <TableHead>Diagnóstico</TableHead>
           <TableHead>Médico</TableHead>
         </TableRow>
       </TableHeader>
@@ -187,8 +185,6 @@ const handleDelete = async (id: string) => {
               <TableCell>{appointment_time}</TableCell>
               <TableCell>{ownerFullName}</TableCell> 
                <TableCell>{a.pet.name}</TableCell> 
-              <TableCell>{a.diagnosis}</TableCell>
-              <TableCell>{a.treatment}</TableCell>
               <TableCell>{a.doctor.name}</TableCell>
               <TableCell>
                 <div className="flex gap-2">
