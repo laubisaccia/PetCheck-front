@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom"
 import { AppointmentsTable } from "@/components/ui/appointments-table"
 import { CustomersTable } from "@/components/ui/customers-table"
 import { CreateUserForm } from "@/components/ui/create-user-form"
+import { CreateDoctorForm } from "@/components/ui/create-doctor-form"
 
 import { InfoCardsGroup } from "@/components/info-cards-group"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -193,6 +194,8 @@ const refreshCustomerPets = (customerId: string) => {
   <TabsContent value="users">
     <h1 className="text-2xl font-semibold mt-8 mb-4">Crear usuario</h1>
     <CreateUserForm />
+    <h1 className="text-2xl font-semibold mt-8 mb-4">Crear médico</h1>
+<CreateDoctorForm />
   </TabsContent>
 
       </Tabs>
