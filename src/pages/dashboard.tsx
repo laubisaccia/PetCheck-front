@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge"
 import type{ Appointment } from "@/components/ui/appointments-table"
 
 import { getUserFromToken } from "@/utils/auth"
+import { CreateCustomerForm } from "@/components/ui/create-customer-form"
+import { CreatePetForm } from "@/components/ui/create-pet-form"
 
 const translateRole = (role: string): string => {
   switch (role) {
@@ -29,6 +31,12 @@ export function Dashboard() {
 
     const [appointments, setAppointments] = useState<Appointment[]>([])
     const [customers, setCustomers] = useState([])
+    const [showCreateCustomer, setShowCreateCustomer] = useState(false)
+    const [showCreatePetModal, setShowCreatePetModal] = useState(false);
+    const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+    const [refreshId, setRefreshId] = useState<string | null>(null)
+
+
 const navigate = useNavigate()
 const user = getUserFromToken()
 
@@ -87,6 +95,33 @@ const handleLogout = () => {
   const todaysAppointments = futureAppointments.filter((a) =>
   a.date.startsWith(todayStr)
 )
+const handleCustomerCreated = (newCustomer) => {
+  setCustomers([...customers, newCustomer])
+  setShowCreateCustomer(false)
+}
+const openCreatePetModal = (customerId: string) => {
+  setSelectedCustomerId(customerId);
+  setShowCreatePetModal(true);
+}
+const closeCreatePetModal = () => {
+  setShowCreatePetModal(false);
+  setSelectedCustomerId(null);
+}
+const fetchPetsByCustomerId = async (customerId: string) => {
+  const token = localStorage.getItem("token")
+  const res = await fetch(`http://localhost:8000/api/v1/pets/by-customer/${customerId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) {
+    console.error("No se pudieron obtener las mascotas del cliente")
+    return []
+  }
+  return res.json()
+}
+
+const refreshCustomerPets = (customerId: string) => {
+  setRefreshId(customerId) 
+}
  const cardsData = [
     {
       title: "Turnos del día",
@@ -123,14 +158,35 @@ const handleLogout = () => {
         <TabsContent value="appointments">
           <InfoCardsGroup cards={cardsData} />
           <h1 className="text-2xl font-semibold mt-8 mb-4">Próximos turnos</h1>
+          <Button onClick={() => setShowCreateModal(true)} className="mb-4">
+  Crear turno
+</Button>
           <AppointmentsTable appointments={futureAppointments} refreshAppointments={fetchAppointments}/>
         </TabsContent>
 
         <TabsContent value="customers">
          
           <h1 className="text-2xl font-semibold mt-8 mb-4">Listado de clientes</h1>
-          <CustomersTable customers={customers} />
-          
+          <Button className="mb-4" onClick={() => setShowCreateCustomer(true)}>
+  Crear cliente
+</Button>
+{showCreateCustomer && <CreateCustomerForm onCreated={handleCustomerCreated} />}
+          <CustomersTable customers={customers} 
+            onCreatePetClick={openCreatePetModal}
+            fetchPetsByCustomerId={fetchPetsByCustomerId}
+             refreshCustomerPets={refreshCustomerPets}
+             refreshId={refreshId}
+          />
+          {showCreatePetModal && selectedCustomerId && (
+    <CreatePetForm
+      customerId={selectedCustomerId}
+      onClose={closeCreatePetModal}
+      onCreated={() => {
+        refreshCustomerPets(selectedCustomerId)
+        closeCreatePetModal();
+      }}
+    />
+  )}
         </TabsContent>
        
   <TabsContent value="users">
