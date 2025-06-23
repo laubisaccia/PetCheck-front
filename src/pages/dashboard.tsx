@@ -176,6 +176,7 @@ const refreshCustomerPets = (customerId: string) => {
             fetchPetsByCustomerId={fetchPetsByCustomerId}
              refreshCustomerPets={refreshCustomerPets}
              refreshId={refreshId}
+             refreshCustomers={fetchCustomers}
           />
           {showCreatePetModal && selectedCustomerId && (
     <CreatePetForm
