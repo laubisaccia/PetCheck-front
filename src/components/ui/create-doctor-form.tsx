@@ -5,7 +5,10 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
 
-export function CreateDoctorForm() {
+type Props = {
+  onCreated?: () => void
+}
+export function CreateDoctorForm({onCreated}:Props) {
   const [name, setName] = useState("")
 
   const handleCreateDoctor = async () => {
@@ -22,13 +25,16 @@ export function CreateDoctorForm() {
     if (!res.ok) {
       const data = await res.json()
       toast.error("Error al crear médico", {
-        description: data.detail || "Revisá los datos enviados",
+        description: data.detail || "Datos incorrectos",
       })
       return
     }
 
     toast.success("Médico creado correctamente")
     setName("")
+    if (onCreated){
+      onCreated()
+    }
   }
 
   return (

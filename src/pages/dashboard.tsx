@@ -5,6 +5,7 @@ import { AppointmentsTable } from "@/components/ui/appointments-table"
 import { CustomersTable } from "@/components/ui/customers-table"
 import { CreateUserForm } from "@/components/ui/create-user-form"
 import { CreateDoctorForm } from "@/components/ui/create-doctor-form"
+import { DoctorsTable } from "@/components/ui/doctors-table"
 
 import { InfoCardsGroup } from "@/components/info-cards-group"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -36,6 +37,7 @@ export function Dashboard() {
     const [showCreatePetModal, setShowCreatePetModal] = useState(false);
     const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
     const [refreshId, setRefreshId] = useState<string | null>(null)
+    const[doctors,setDoctors]=useState([])
 
 
 const navigate = useNavigate()
@@ -74,7 +76,30 @@ const handleLogout = () => {
         .then((res) => res.json())
         .then((data) => setCustomers(data))
     }
+const fetchDoctors = async () => {
+    const token = localStorage.getItem("token")
+    if (!token) {
+      console.error("No token found")
+      return
+    }
 
+    try {
+      const res = await fetch("http://localhost:8000/api/v1/doctors", {
+        headers: {
+          Authorization:  `Bearer ${token} `,
+        },
+      })
+
+      if (!res.ok) {
+        throw new Error("Error al obtener médicos")
+      }
+
+      const data = await res.json()
+      setDoctors(data)
+    } catch (error) {
+      console.error("Error al cargar médicos:", error)
+    }
+  }
     useEffect(() => {
       const token = localStorage.getItem("token")
   if (!token) {
@@ -83,6 +108,7 @@ const handleLogout = () => {
   }
     fetchAppointments()
     fetchCustomers()
+    fetchDoctors()
     }, [navigate])
 
  
@@ -154,8 +180,9 @@ const refreshCustomerPets = (customerId: string) => {
           <TabsTrigger value="appointments">Turnos</TabsTrigger>
           <TabsTrigger value="customers">Clientes</TabsTrigger>
           {user?.role === "admin" && <TabsTrigger value="users">Usuarios</TabsTrigger>}
-        </TabsList>
+          {user?.role === "admin" && <TabsTrigger value="doctors">Medicos</TabsTrigger>}
 
+        </TabsList>
         <TabsContent value="appointments">
           <InfoCardsGroup cards={cardsData} />
           <h1 className="text-2xl font-semibold mt-8 mb-4">Próximos turnos</h1>
@@ -194,10 +221,15 @@ const refreshCustomerPets = (customerId: string) => {
   <TabsContent value="users">
     <h1 className="text-2xl font-semibold mt-8 mb-4">Crear usuario</h1>
     <CreateUserForm />
-    <h1 className="text-2xl font-semibold mt-8 mb-4">Crear médico</h1>
-<CreateDoctorForm />
+    
   </TabsContent>
+<TabsContent value="doctors">
+          <h1 className="text-2xl font-semibold mt-8 mb-4">Crear médico</h1>
+          <CreateDoctorForm onCreated={fetchDoctors} />
 
+          <h2 className="text-xl font-semibold mt-8 mb-4">Listado de médicos</h2>
+          <DoctorsTable doctors={doctors} refreshDoctors={fetchDoctors} />
+        </TabsContent>
       </Tabs>
     </div>
   )
