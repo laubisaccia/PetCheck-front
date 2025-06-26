@@ -331,6 +331,11 @@ const openAppointmentModal = (customerId: string) => {
       <DialogTitle>Nuevo turno</DialogTitle>
     </DialogHeader>
     <div className="space-y-4">
+      {availableDoctors.length === 0 && (
+  <p className="text-red-600 text-sm">
+    No hay médicos disponibles. Por favor crea uno antes de asignar turnos.
+  </p>
+)}
       <select
         value={selectedPetId}
         onChange={(e) => setSelectedPetId(e.target.value)}
@@ -370,6 +375,9 @@ const openAppointmentModal = (customerId: string) => {
         <button
           onClick={handleCreateAppointment}
           className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+           disabled={
+      !selectedPetId || !selectedDoctorId || !newDate || !newTime || availableDoctors.length === 0
+    }
         >
           Crear turno
         </button>
