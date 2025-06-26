@@ -1,17 +1,23 @@
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import {  type LucideIcon } from "lucide-react"
+import {
+  Card,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { type LucideIcon } from "lucide-react";
 
-import { Badge } from "./ui/badge"
+import { Badge } from "./ui/badge";
 
 type InfoCardProps = {
-  title: string
-  value: string
-  description: string
-  badgeText?: string
-  badgeIcon?: LucideIcon
-  footerText?: string
-  footerIcon?: LucideIcon
-}
+  title: string;
+  value: string;
+  description: string;
+  badgeText?: string;
+  badgeIcon?: LucideIcon;
+  footerText?: string;
+  footerIcon?: LucideIcon;
+};
 
 export function InfoCard({
   title,
@@ -48,5 +54,5 @@ export function InfoCard({
         <div className="text-muted-foreground">{description}</div>
       </CardFooter>
     </Card>
-  )
+  );
 }

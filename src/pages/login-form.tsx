@@ -1,75 +1,70 @@
-import React, { useState } from 'react'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
+import React, { useState } from "react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useNavigate } from 'react-router-dom'
-
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useNavigate } from "react-router-dom";
 
 export function LoginForm({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<'div'>) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+}: React.ComponentPropsWithoutRef<"div">) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:8000/api/v1/login', {
-        method: 'POST',
+      const res = await fetch("http://localhost:8000/api/v1/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
-      })
+      });
 
       if (!res.ok) {
-        const errorData = await res.json()
-        throw new Error(errorData.detail || 'Login failed')
+        const errorData = await res.json();
+        throw new Error(errorData.detail || "Login failed");
       }
 
-      const token = await res.json()
-      console.log('TOKEN:', token)
+      const token = await res.json();
+      console.log("TOKEN:", token);
 
-     
-      localStorage.setItem('token', token)
-    
-      navigate('/dashboard')
+      localStorage.setItem("token", token);
 
+      navigate("/dashboard");
 
-      setEmail("")
-      setPassword("")
+      setEmail("");
+      setPassword("");
     } catch (err: any) {
-      setEmail("")
-      setPassword("")
-      setError(err.message)
+      setEmail("");
+      setPassword("");
+      setError(err.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>
-            Ingresa tu email y contraseña
-          </CardDescription>
+          <CardDescription>Ingresa tu email y contraseña</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
@@ -88,22 +83,22 @@ export function LoginForm({
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
                 </div>
-                <Input id="password" 
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required />
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
               </div>
-                {error && <p className="text-sm text-red-500">{error}</p>}
-               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Cargando...' : 'Login'}
+              {error && <p className="text-sm text-red-500">{error}</p>}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Cargando..." : "Login"}
               </Button>
-            
             </div>
-            
           </form>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

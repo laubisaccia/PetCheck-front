@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -6,15 +6,15 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogClose,
-} from "@/components/ui/dialog"
-import { Pencil, Trash } from "lucide-react"
+} from "@/components/ui/dialog";
+import { Pencil, Trash } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -24,70 +24,72 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
   AlertDialogAction,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
 
 interface Doctor {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 interface Props {
-  doctors: Doctor[]
-  refreshDoctors: () => void
+  doctors: Doctor[];
+  refreshDoctors: () => void;
 }
 
 export function DoctorsTable({ doctors, refreshDoctors }: Props) {
-  const [editModalOpen, setEditModalOpen] = useState(false)
-  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null)
-  const [name, setName] = useState("")
-  const [isSaving, setIsSaving] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+  const [name, setName] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleEditDoctor = (doctor: Doctor) => {
-    setSelectedDoctor(doctor)
-    setName(doctor.name)
-    setEditModalOpen(true)
-  }
+    setSelectedDoctor(doctor);
+    setName(doctor.name);
+    setEditModalOpen(true);
+  };
 
   const handleSaveEdit = async () => {
-    if (!selectedDoctor) return
-    setIsSaving(true)
-    const token = localStorage.getItem("token")
+    if (!selectedDoctor) return;
+    setIsSaving(true);
+    const token = localStorage.getItem("token");
     try {
-      const res = await fetch( `http://localhost:8000/api/v1/doctors/${selectedDoctor.id} `, {
-        method: "PATCH",
-        headers: {
-          Authorization:  `Bearer ${token} `,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name }),
-      })
-      if (!res.ok) throw new Error("Error al editar médico")
-      setEditModalOpen(false)
-      refreshDoctors()
+      const res = await fetch(
+        `http://localhost:8000/api/v1/doctors/${selectedDoctor.id} `,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token} `,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name }),
+        }
+      );
+      if (!res.ok) throw new Error("Error al editar médico");
+      setEditModalOpen(false);
+      refreshDoctors();
     } catch (error) {
-      console.error("Error al editar médico:", error)
+      console.error("Error al editar médico:", error);
       // Aquí podrías agregar un toast o alerta para mostrar el error
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const handleDeleteDoctor = async (id: string) => {
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("token");
     try {
-      const res = await fetch( `http://localhost:8000/api/v1/doctors/${id} `, {
+      const res = await fetch(`http://localhost:8000/api/v1/doctors/${id} `, {
         method: "DELETE",
         headers: {
-          Authorization:  `Bearer ${token} `,
+          Authorization: `Bearer ${token} `,
         },
-      })
-      if (!res.ok) throw new Error("No se pudo eliminar el médico")
-      refreshDoctors()
+      });
+      if (!res.ok) throw new Error("No se pudo eliminar el médico");
+      refreshDoctors();
     } catch (error) {
-      console.error("Error al eliminar médico:", error)
-      
+      console.error("Error al eliminar médico:", error);
     }
-  }
+  };
 
   return (
     <>
@@ -121,7 +123,9 @@ export function DoctorsTable({ doctors, refreshDoctors }: Props) {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleDeleteDoctor(doctor.id)}>
+                      <AlertDialogAction
+                        onClick={() => handleDeleteDoctor(doctor.id)}
+                      >
                         Confirmar
                       </AlertDialogAction>
                     </AlertDialogFooter>
@@ -132,7 +136,6 @@ export function DoctorsTable({ doctors, refreshDoctors }: Props) {
           ))}
         </TableBody>
       </Table>
-
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
         <DialogContent>
           <DialogHeader>
@@ -161,6 +164,7 @@ export function DoctorsTable({ doctors, refreshDoctors }: Props) {
           </div>
         </DialogContent>
       </Dialog>
-    </>
-  )
+          
+    </>
+  );
 }

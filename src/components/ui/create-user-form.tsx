@@ -1,17 +1,17 @@
-import { useState } from "react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { toast } from "sonner"
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
 
 export function CreateUserForm() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [role, setRole] = useState("employee") 
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("employee");
 
   const handleCreateUser = async () => {
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("token");
     const res = await fetch("http://localhost:8000/api/v1/users", {
       method: "POST",
       headers: {
@@ -19,24 +19,24 @@ export function CreateUserForm() {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ email, password, role }),
-    })
+    });
 
     if (!res.ok) {
-      const data = await res.json()
+      const data = await res.json();
       toast.error("Error al crear usuario", {
         description: data.detail,
-      })
-      return
+      });
+      return;
     }
 
     toast.success("Usuario creado correctamente", {
       description: `${email} (${role})`,
-    })
+    });
 
-    setEmail("")
-    setPassword("")
-    setRole("employee")
-  }
+    setEmail("");
+    setPassword("");
+    setRole("employee");
+  };
 
   return (
     <Card className="max-w-md mt-8">
@@ -46,11 +46,19 @@ export function CreateUserForm() {
       <CardContent className="flex flex-col gap-4">
         <div>
           <Label>Email</Label>
-          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
         <div>
           <Label>Contraseña</Label>
-          <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <Input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </div>
         <div>
           <Label>Rol</Label>
@@ -66,5 +74,5 @@ export function CreateUserForm() {
         <Button onClick={handleCreateUser}>Crear usuario</Button>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -1,22 +1,32 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"
-import { useState } from "react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { useState } from "react";
 
 type CreatePetFormProps = {
-  customerId: string
-  onClose: () => void
-  onCreated: (newPet: any) => void
-}
+  customerId: string;
+  onClose: () => void;
+  onCreated: (newPet: any) => void;
+};
 
-export function CreatePetForm({ customerId, onClose, onCreated }: CreatePetFormProps) {
-  const [name, setName] = useState("")
-  const [animal, setAnimal] = useState("")
-  const [breed, setBreed] = useState("")
-  const [age, setAge] = useState("")
+export function CreatePetForm({
+  customerId,
+  onClose,
+  onCreated,
+}: CreatePetFormProps) {
+  const [name, setName] = useState("");
+  const [animal, setAnimal] = useState("");
+  const [breed, setBreed] = useState("");
+  const [age, setAge] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("token");
     const res = await fetch(`http://localhost:8000/api/v1/pets`, {
       method: "POST",
       headers: {
@@ -30,16 +40,16 @@ export function CreatePetForm({ customerId, onClose, onCreated }: CreatePetFormP
         age: Number(age),
         customer_id: customerId,
       }),
-    })
+    });
 
     if (res.ok) {
-      const newPet = await res.json()
-      onCreated(newPet)
-      onClose()
+      const newPet = await res.json();
+      onCreated(newPet);
+      onClose();
     } else {
-      alert("Error al crear mascota")
+      alert("Error al crear mascota");
     }
-  }
+  };
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
@@ -47,7 +57,9 @@ export function CreatePetForm({ customerId, onClose, onCreated }: CreatePetFormP
         <DialogHeader>
           <DialogTitle>Crear nueva mascota</DialogTitle>
           <DialogClose asChild>
-            <button className="absolute right-4 top-4 text-gray-500 hover:text-gray-700">X</button>
+            <button className="absolute right-4 top-4 text-gray-500 hover:text-gray-700">
+              X
+            </button>
           </DialogClose>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -89,11 +101,14 @@ export function CreatePetForm({ customerId, onClose, onCreated }: CreatePetFormP
               className="w-full border px-2 py-1 rounded"
             />
           </div>
-          <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+          <button
+            type="submit"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
             Crear mascota
           </button>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

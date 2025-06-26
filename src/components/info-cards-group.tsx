@@ -1,17 +1,17 @@
-import { InfoCard } from "@/components/info-cards"
+import { InfoCard } from "@/components/info-cards";
 
 interface CardData {
-  title: string
-  value: string
-  description?: string
-  badgeText?: string
-  badgeIcon?: React.ComponentType<any>
-  footerText?: string
-  footerIcon?: React.ComponentType<any>
+  title: string;
+  value: string;
+  description?: string;
+  badgeText?: string;
+  badgeIcon?: React.ComponentType<any>;
+  footerText?: string;
+  footerIcon?: React.ComponentType<any>;
 }
 
 interface InfoCardsGroupProps {
-  cards: CardData[]
+  cards: CardData[];
 }
 
 export function InfoCardsGroup({ cards }: InfoCardsGroupProps) {
@@ -30,5 +30,5 @@ export function InfoCardsGroup({ cards }: InfoCardsGroupProps) {
         />
       ))}
     </div>
-  )
+  );
 }
