@@ -18,6 +18,8 @@ import { getUserFromToken } from "@/utils/auth";
 import { CreateCustomerForm } from "@/components/ui/create-customer-form";
 import { CreatePetForm } from "@/components/ui/create-pet-form";
 
+import logo from "@/assets/pet_check_logo.png";
+
 const translateRole = (role: string): string => {
   switch (role) {
     case "admin":
@@ -164,9 +166,12 @@ export function Dashboard() {
   return (
     <div className="p-6">
       {user && (
-        <div className="text-sm text-muted-foreground flex flex-col gap-1">
-          <Badge variant="outline">{user.email}</Badge>
-          <Badge variant="secondary">{translateRole(user.role)}</Badge>{" "}
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-sm text-muted-foreground flex flex-col gap-1">
+            <Badge variant="outline">{user.email}</Badge>
+            <Badge variant="secondary">{translateRole(user.role)}</Badge>
+          </div>
+          <img src={logo} alt="PetCheck Logo" className="h-15 w-auto ml-4" />
         </div>
       )}
       <div className="flex justify-end mb-4">

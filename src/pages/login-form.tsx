@@ -11,6 +11,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
+import logo from "@/assets/pet_check_logo.png"
+
 
 export function LoginForm({
   className,
@@ -62,10 +64,13 @@ export function LoginForm({
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>Ingresa tu email y contraseña</CardDescription>
-        </CardHeader>
+       <CardHeader>
+  <div className="flex items-center justify-between">
+    <CardTitle className="text-2xl">Login</CardTitle>
+    <img src={logo} alt="PetCheck Logo" className="h-15 w-auto" />
+  </div>
+  <CardDescription>Ingresa tu email y contraseña</CardDescription>
+</CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
