@@ -33,6 +33,8 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Pencil, Trash, CalendarPlus } from "lucide-react";
 
 type Customer = {
@@ -386,61 +388,78 @@ export function CustomersTable({
         open={newAppointmentModalOpen}
         onOpenChange={setNewAppointmentModalOpen}
       >
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Nuevo turno</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {availableDoctors.length === 0 && (
-              <p className="text-red-600 text-sm">
+              <p className="text-sm text-destructive">
                 No hay médicos disponibles. Por favor crea uno antes de asignar
                 turnos.
               </p>
             )}
-            <select
-              value={selectedPetId}
-              onChange={(e) => setSelectedPetId(e.target.value)}
-              className="w-full border px-2 py-1"
-            >
-              <option value="">Seleccioná una mascota</option>
-              {appointmentCustomerId &&
-                customerPets[appointmentCustomerId]?.map((pet) => (
-                  <option key={pet.id} value={pet.id}>
-                    {pet.name}
+            <div className="space-y-2">
+              <Label htmlFor="pet-select">Mascota</Label>
+              <select
+                id="pet-select"
+                value={selectedPetId}
+                onChange={(e) => setSelectedPetId(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <option value="">Seleccioná una mascota</option>
+                {appointmentCustomerId &&
+                  customerPets[appointmentCustomerId]?.map((pet) => (
+                    <option key={pet.id} value={pet.id}>
+                      {pet.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="doctor-select">Médico</Label>
+              <select
+                id="doctor-select"
+                value={selectedDoctorId}
+                onChange={(e) => setSelectedDoctorId(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <option value="">Seleccioná un médico</option>
+                {availableDoctors.map((doctor) => (
+                  <option key={doctor.id} value={doctor.id}>
+                    {doctor.name}
                   </option>
                 ))}
-            </select>
+              </select>
+            </div>
 
-            <select
-              value={selectedDoctorId}
-              onChange={(e) => setSelectedDoctorId(e.target.value)}
-              className="w-full border px-2 py-1"
-            >
-              <option value="">Seleccioná un médico</option>
-              {availableDoctors.map((doctor) => (
-                <option key={doctor.id} value={doctor.id}>
-                  {doctor.name}
-                </option>
-              ))}
-            </select>
+            <div className="space-y-2">
+              <Label htmlFor="appointment-date">Fecha</Label>
+              <Input
+                id="appointment-date"
+                type="date"
+                value={newDate}
+                onChange={(e) => setNewDate(e.target.value)}
+              />
+            </div>
 
-            <input
-              type="date"
-              value={newDate}
-              onChange={(e) => setNewDate(e.target.value)}
-              className="w-full border px-2 py-1"
-            />
-            <input
-              type="time"
-              value={newTime}
-              onChange={(e) => setNewTime(e.target.value)}
-              className="w-full border px-2 py-1"
-            />
+            <div className="space-y-2">
+              <Label htmlFor="appointment-time">Horario</Label>
+              <Input
+                id="appointment-time"
+                type="time"
+                value={newTime}
+                onChange={(e) => setNewTime(e.target.value)}
+              />
+            </div>
 
-            <DialogClose asChild>
-              <button
+            <div className="flex gap-2 justify-end pt-4">
+              <Button variant="outline" onClick={() => setNewAppointmentModalOpen(false)}>
+                Cancelar
+              </Button>
+              <Button
                 onClick={handleCreateAppointment}
-                className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
                 disabled={
                   !selectedPetId ||
                   !selectedDoctorId ||
@@ -450,8 +469,8 @@ export function CustomersTable({
                 }
               >
                 Crear turno
-              </button>
-            </DialogClose>
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

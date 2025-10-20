@@ -26,6 +26,9 @@ import {
 
 import { useState } from "react";
 import { Eye, Pencil, Trash } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export type Appointment = {
   id: string;
@@ -244,83 +247,81 @@ export function AppointmentsTable({
       </Table>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Información de la mascota</DialogTitle>
           </DialogHeader>
 
           {selectedPet ? (
-            <div className="space-y-2">
-              <p>
-                <strong>Nombre:</strong> {selectedPet.name}
-              </p>
-              <p>
-                <strong>Especie:</strong> {selectedPet.animal}
-              </p>
-              <p>
-                <strong>Raza:</strong> {selectedPet.breed}
-              </p>
-              <p>
-                <strong>Edad:</strong> {selectedPet.age} años
-              </p>
-              <p>
-                <strong>Dueño:</strong>{" "}
-                {owner ? getOwnerFullName(owner) : "Desconocido"}
-              </p>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="font-semibold">Nombre:</div>
+                <div>{selectedPet.name}</div>
+
+                <div className="font-semibold">Especie:</div>
+                <div>{selectedPet.animal}</div>
+
+                <div className="font-semibold">Raza:</div>
+                <div>{selectedPet.breed}</div>
+
+                <div className="font-semibold">Edad:</div>
+                <div>{selectedPet.age} años</div>
+
+                <div className="font-semibold">Dueño:</div>
+                <div>{owner ? getOwnerFullName(owner) : "Desconocido"}</div>
+              </div>
 
               <DialogClose asChild>
                 <button
                   onClick={() => {
                     console.log("Pedir turno para mascota ID:", selectedPet.id);
                   }}
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  className="w-full mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
                 >
                   Pedir turno
                 </button>
               </DialogClose>
             </div>
           ) : (
-            <p>Cargando información...</p>
+            <p className="text-muted-foreground">Cargando información...</p>
           )}
         </DialogContent>
       </Dialog>
 
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-        <DialogContent className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Editar turno</DialogTitle>
           </DialogHeader>
 
           {selectedAppointment && (
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium">Nueva fecha</label>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="edit-date">Nueva fecha</Label>
+                <Input
+                  id="edit-date"
                   type="date"
                   value={newDate}
                   onChange={(e) => setNewDate(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-2 py-1"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium">
-                  Nuevo horario
-                </label>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="edit-time">Nuevo horario</Label>
+                <Input
+                  id="edit-time"
                   type="time"
                   value={newTime}
                   onChange={(e) => setNewTime(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-2 py-1"
                 />
               </div>
-              <DialogClose asChild>
-                <button
-                  onClick={handleSaveEdit}
-                  className="mt-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                >
+              <div className="flex gap-2 justify-end pt-4">
+                <Button variant="outline" onClick={() => setEditModalOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleSaveEdit}>
                   Guardar cambios
-                </button>
-              </DialogClose>
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>

@@ -15,7 +15,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { InfoCardsGroupSkeleton } from "@/components/ui/card-skeleton";
 import { CalendarView } from "@/components/ui/calendar-view";
-import { Calendar, TableIcon } from "lucide-react";
+import { Calendar, TableIcon, CalendarCheck, TrendingUp, Users, PawPrint } from "lucide-react";
 
 import type { Appointment } from "@/components/ui/appointments-table";
 
@@ -169,14 +169,47 @@ export function Dashboard() {
   const refreshCustomerPets = (customerId: string) => {
     setRefreshId(customerId);
   };
+
+  // Calcular turnos de esta semana
+  const endOfWeek = new Date(today);
+  endOfWeek.setDate(today.getDate() + 7);
+
+  const thisWeekAppointments = appointments.filter((apt) => {
+    const aptDate = new Date(apt.date);
+    return aptDate >= today && aptDate <= endOfWeek;
+  });
+
+  // Contar mascotas únicas
+  const uniquePets = new Set(appointments.map((apt) => apt.pet.id)).size;
+
   const cardsData = [
     {
       title: "Turnos del día",
       value: todaysAppointments.length.toString(),
+      description: "Citas programadas para hoy",
+      badgeIcon: CalendarCheck,
+      badgeText: "Hoy",
     },
     {
-      title: "Turnos a futuro",
-      value: futureAppointments.length.toString(),
+      title: "Turnos esta semana",
+      value: thisWeekAppointments.length.toString(),
+      description: "Próximos 7 días",
+      badgeIcon: TrendingUp,
+      badgeText: "7 días",
+    },
+    {
+      title: "Total Clientes",
+      value: customers.length.toString(),
+      description: "Clientes registrados",
+      badgeIcon: Users,
+      badgeText: "Activos",
+    },
+    {
+      title: "Total Mascotas",
+      value: uniquePets.toString(),
+      description: "Mascotas en el sistema",
+      badgeIcon: PawPrint,
+      badgeText: "Únicas",
     },
   ];
   return (
@@ -210,7 +243,7 @@ export function Dashboard() {
         <TabsContent value="appointments">
           {loadingAppointments ? (
             <>
-              <InfoCardsGroupSkeleton count={2} />
+              <InfoCardsGroupSkeleton count={4} />
               <h1 className="text-2xl font-semibold mt-8 mb-4">Próximos turnos</h1>
               <TableSkeleton rows={5} columns={5} />
             </>
