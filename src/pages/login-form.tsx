@@ -11,7 +11,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import logo from "@/assets/pet_check_logo.png"
+import logo from "@/assets/pet_check_logo.png";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 
 export function LoginForm({
@@ -63,6 +64,9 @@ export function LoginForm({
   };
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
+      <div className="flex justify-end mb-2">
+        <ThemeToggle />
+      </div>
       <Card>
        <CardHeader>
   <div className="flex items-center justify-between">

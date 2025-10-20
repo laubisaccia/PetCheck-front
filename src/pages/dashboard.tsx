@@ -11,6 +11,9 @@ import { InfoCardsGroup } from "@/components/info-cards-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
+import { InfoCardsGroupSkeleton } from "@/components/ui/card-skeleton";
 
 import type { Appointment } from "@/components/ui/appointments-table";
 
@@ -41,6 +44,9 @@ export function Dashboard() {
   );
   const [refreshId, setRefreshId] = useState<string | null>(null);
   const [doctors, setDoctors] = useState([]);
+  const [loadingAppointments, setLoadingAppointments] = useState(true);
+  const [loadingCustomers, setLoadingCustomers] = useState(true);
+  const [loadingDoctors, setLoadingDoctors] = useState(true);
 
   const navigate = useNavigate();
   const user = getUserFromToken();
@@ -51,6 +57,7 @@ export function Dashboard() {
   };
   const fetchAppointments = () => {
     const token = localStorage.getItem("token");
+    setLoadingAppointments(true);
 
     fetch("http://localhost:8000/api/v1/appointments/with-names", {
       headers: {
@@ -64,11 +71,13 @@ export function Dashboard() {
         } else {
           setAppointments([]);
         }
-      });
+      })
+      .finally(() => setLoadingAppointments(false));
   };
 
   const fetchCustomers = () => {
     const token = localStorage.getItem("token");
+    setLoadingCustomers(true);
 
     fetch("http://localhost:8000/api/v1/customers", {
       headers: {
@@ -76,7 +85,8 @@ export function Dashboard() {
       },
     })
       .then((res) => res.json())
-      .then((data) => setCustomers(data));
+      .then((data) => setCustomers(data))
+      .finally(() => setLoadingCustomers(false));
   };
   const fetchDoctors = async () => {
     const token = localStorage.getItem("token");
@@ -85,6 +95,7 @@ export function Dashboard() {
       return;
     }
 
+    setLoadingDoctors(true);
     try {
       const res = await fetch("http://localhost:8000/api/v1/doctors", {
         headers: {
@@ -100,6 +111,8 @@ export function Dashboard() {
       setDoctors(data);
     } catch (error) {
       console.error("Error al cargar médicos:", error);
+    } finally {
+      setLoadingDoctors(false);
     }
   };
   useEffect(() => {
@@ -174,7 +187,8 @@ export function Dashboard() {
           <img src={logo} alt="PetCheck Logo" className="h-15 w-auto ml-4" />
         </div>
       )}
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-end gap-2 mb-4">
+        <ThemeToggle />
         <Button variant="outline" onClick={handleLogout}>
           Logout
         </Button>
@@ -191,13 +205,22 @@ export function Dashboard() {
           )}
         </TabsList>
         <TabsContent value="appointments">
-          <InfoCardsGroup cards={cardsData} />
-          <h1 className="text-2xl font-semibold mt-8 mb-4">Próximos turnos</h1>
-
-          <AppointmentsTable
-            appointments={futureAppointments}
-            refreshAppointments={fetchAppointments}
-          />
+          {loadingAppointments ? (
+            <>
+              <InfoCardsGroupSkeleton count={2} />
+              <h1 className="text-2xl font-semibold mt-8 mb-4">Próximos turnos</h1>
+              <TableSkeleton rows={5} columns={5} />
+            </>
+          ) : (
+            <>
+              <InfoCardsGroup cards={cardsData} />
+              <h1 className="text-2xl font-semibold mt-8 mb-4">Próximos turnos</h1>
+              <AppointmentsTable
+                appointments={futureAppointments}
+                refreshAppointments={fetchAppointments}
+              />
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="customers">
@@ -210,15 +233,19 @@ export function Dashboard() {
           {showCreateCustomer && (
             <CreateCustomerForm onCreated={handleCustomerCreated} />
           )}
-          <CustomersTable
-            customers={customers}
-            onCreatePetClick={openCreatePetModal}
-            fetchPetsByCustomerId={fetchPetsByCustomerId}
-            refreshCustomerPets={refreshCustomerPets}
-            refreshId={refreshId}
-            refreshCustomers={fetchCustomers}
-            refreshAppointments={fetchAppointments}
-          />
+          {loadingCustomers ? (
+            <TableSkeleton rows={5} columns={4} />
+          ) : (
+            <CustomersTable
+              customers={customers}
+              onCreatePetClick={openCreatePetModal}
+              fetchPetsByCustomerId={fetchPetsByCustomerId}
+              refreshCustomerPets={refreshCustomerPets}
+              refreshId={refreshId}
+              refreshCustomers={fetchCustomers}
+              refreshAppointments={fetchAppointments}
+            />
+          )}
           {showCreatePetModal && selectedCustomerId && (
             <CreatePetForm
               customerId={selectedCustomerId}
@@ -242,7 +269,11 @@ export function Dashboard() {
           <h2 className="text-xl font-semibold mt-8 mb-4">
             Listado de médicos
           </h2>
-          <DoctorsTable doctors={doctors} refreshDoctors={fetchDoctors} />
+          {loadingDoctors ? (
+            <TableSkeleton rows={3} columns={2} />
+          ) : (
+            <DoctorsTable doctors={doctors} refreshDoctors={fetchDoctors} />
+          )}
         </TabsContent>
       </Tabs>
     </div>
