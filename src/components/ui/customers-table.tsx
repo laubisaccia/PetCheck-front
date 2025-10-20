@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Table,
   TableBody,
@@ -92,20 +92,36 @@ export function CustomersTable({
     string | null
   >(null);
 
-  const loadPets = async (customerId: string) => {
-    console.log(customerId);
-    if (customerPets[customerId] || loadingIds.has(customerId)) return;
-    setLoadingIds((prev) => new Set(prev).add(customerId));
-    const pets = await fetchPetsByCustomerId(customerId);
-    console.log("Mascotas para", customerId, pets);
+  const loadPets = useCallback(async (customerId: string) => {
+    setLoadingIds((prev) => {
+      if (prev.has(customerId)) return prev;
+      return new Set(prev).add(customerId);
+    });
 
-    setCustomerPets((prev) => ({ ...prev, [customerId]: pets }));
+    setCustomerPets((prev) => {
+      if (prev[customerId]) {
+        setLoadingIds((ids) => {
+          const updated = new Set(ids);
+          updated.delete(customerId);
+          return updated;
+        });
+        return prev;
+      }
+      return prev;
+    });
+
+    const pets = await fetchPetsByCustomerId(customerId);
+
+    setCustomerPets((prev) => {
+      if (prev[customerId]) return prev;
+      return { ...prev, [customerId]: pets };
+    });
     setLoadingIds((prev) => {
       const updated = new Set(prev);
       updated.delete(customerId);
       return updated;
     });
-  };
+  }, [fetchPetsByCustomerId]);
 
   useEffect(() => {
     if (refreshId) {
@@ -149,6 +165,15 @@ export function CustomersTable({
       loadPets(appointmentCustomerId);
     }
   }, [appointmentCustomerId]);
+
+  // Cargar mascotas de todos los clientes al inicio para mostrar/ocultar botón de turno
+  useEffect(() => {
+    customers.forEach((customer) => {
+      if (!customerPets[customer.id]) {
+        loadPets(customer.id);
+      }
+    });
+  }, [customers, customerPets, loadPets]);
 
   const handleEditCustomer = (customer: Customer) => {
     setSelectedCustomer(customer);
@@ -328,12 +353,18 @@ export function CustomersTable({
                 </AlertDialog>
               </TableCell>
               <TableCell>
-                <button
-                  onClick={() => openAppointmentModal(customer.id)}
-                  title="Crear turno"
-                >
-                  <CalendarPlus className="h-5 w-5 text-purple-600" />
-                </button>
+                {customerPets[customer.id] && customerPets[customer.id].length > 0 ? (
+                  <button
+                    onClick={() => openAppointmentModal(customer.id)}
+                    title="Crear turno"
+                  >
+                    <CalendarPlus className="h-5 w-5 text-purple-600" />
+                  </button>
+                ) : (
+                  <span className="text-xs text-muted-foreground" title="Agregá una mascota primero">
+                    -
+                  </span>
+                )}
               </TableCell>
             </TableRow>
           ))}
