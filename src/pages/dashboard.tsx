@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { InfoCardsGroupSkeleton } from "@/components/ui/card-skeleton";
+import { CalendarView } from "@/components/ui/calendar-view";
+import { Calendar, TableIcon } from "lucide-react";
 
 import type { Appointment } from "@/components/ui/appointments-table";
 
@@ -47,6 +49,7 @@ export function Dashboard() {
   const [loadingAppointments, setLoadingAppointments] = useState(true);
   const [loadingCustomers, setLoadingCustomers] = useState(true);
   const [loadingDoctors, setLoadingDoctors] = useState(true);
+  const [viewMode, setViewMode] = useState<"table" | "calendar">("table");
 
   const navigate = useNavigate();
   const user = getUserFromToken();
@@ -214,11 +217,54 @@ export function Dashboard() {
           ) : (
             <>
               <InfoCardsGroup cards={cardsData} />
-              <h1 className="text-2xl font-semibold mt-8 mb-4">Próximos turnos</h1>
-              <AppointmentsTable
-                appointments={futureAppointments}
-                refreshAppointments={fetchAppointments}
-              />
+              <div className="flex items-center justify-between mt-8 mb-4">
+                <h1 className="text-2xl font-semibold">Próximos turnos</h1>
+                <div className="flex gap-2">
+                  <Button
+                    variant={viewMode === "table" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setViewMode("table")}
+                  >
+                    <TableIcon className="h-4 w-4 mr-2" />
+                    Tabla
+                  </Button>
+                  <Button
+                    variant={viewMode === "calendar" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setViewMode("calendar")}
+                  >
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Calendario
+                  </Button>
+                </div>
+              </div>
+
+              {viewMode === "table" ? (
+                <AppointmentsTable
+                  appointments={futureAppointments}
+                  refreshAppointments={fetchAppointments}
+                />
+              ) : (
+                <CalendarView
+                  events={futureAppointments.map((apt) => {
+                    const appointmentDate = new Date(apt.date);
+                    const hours = appointmentDate.getHours().toString().padStart(2, '0');
+                    const minutes = appointmentDate.getMinutes().toString().padStart(2, '0');
+
+                    return {
+                      id: apt.id,
+                      date: apt.date,
+                      time: `${hours}:${minutes}`,
+                      customerName: `${apt.pet.owner.firstName} ${apt.pet.owner.lastName}`,
+                      petName: apt.pet.name,
+                      doctorName: apt.doctor.name,
+                    };
+                  })}
+                  onEventClick={(event) => {
+                    console.log("Evento clickeado:", event);
+                  }}
+                />
+              )}
             </>
           )}
         </TabsContent>
