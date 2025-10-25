@@ -11,8 +11,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import logo from "@/assets/pet_check_logo.png";
+import logoLight from "@/assets/pet_check_logo.png";
+import logoDark from "@/assets/pet_check_logo_fondo_oscuro.png";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useTheme } from "next-themes";
 
 
 export function LoginForm({
@@ -25,6 +27,9 @@ export function LoginForm({
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const { theme } = useTheme();
+
+  const logo = theme === "dark" ? logoDark : logoLight;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

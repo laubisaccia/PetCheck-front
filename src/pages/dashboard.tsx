@@ -22,8 +22,10 @@ import type { Appointment } from "@/components/ui/appointments-table";
 import { getUserFromToken } from "@/utils/auth";
 import { CreateCustomerForm } from "@/components/ui/create-customer-form";
 import { CreatePetForm } from "@/components/ui/create-pet-form";
+import { useTheme } from "next-themes";
 
-import logo from "@/assets/pet_check_logo.png";
+import logoLight from "@/assets/pet_check_logo.png";
+import logoDark from "@/assets/pet_check_logo_fondo_oscuro.png";
 
 const translateRole = (role: string): string => {
   switch (role) {
@@ -53,6 +55,9 @@ export function Dashboard() {
 
   const navigate = useNavigate();
   const user = getUserFromToken();
+  const { theme } = useTheme();
+
+  const logo = theme === "dark" ? logoDark : logoLight;
 
   const handleLogout = () => {
     localStorage.removeItem("token");

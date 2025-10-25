@@ -9,8 +9,29 @@ export function CreateUserForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("employee");
+  const [emailError, setEmailError] = useState("");
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+
+    if (value && !validateEmail(value)) {
+      setEmailError("Por favor ingresa un email válido");
+    } else {
+      setEmailError("");
+    }
+  };
 
   const handleCreateUser = async () => {
+    if (!validateEmail(email)) {
+      setEmailError("Por favor ingresa un email válido");
+      return;
+    }
     const token = localStorage.getItem("token");
     const res = await fetch("http://localhost:8000/api/v1/users", {
       method: "POST",
@@ -49,8 +70,12 @@ export function CreateUserForm() {
           <Input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={handleEmailChange}
+            className={emailError ? "border-red-500" : ""}
           />
+          {emailError && (
+            <p className="text-sm text-red-500 mt-1">{emailError}</p>
+          )}
         </div>
         <div>
           <Label>Contraseña</Label>
@@ -71,7 +96,12 @@ export function CreateUserForm() {
             <option value="admin">Admin</option>
           </select>
         </div>
-        <Button onClick={handleCreateUser}>Crear usuario</Button>
+        <Button
+          onClick={handleCreateUser}
+          disabled={!email || !password || !!emailError}
+        >
+          Crear usuario
+        </Button>
       </CardContent>
     </Card>
   );
